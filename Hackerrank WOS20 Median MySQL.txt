@@ -1,0 +1,23 @@
+set @row_count:=0, @row_n:=0;
+
+/* put a row count of the stations into a variable, so the code is cleaner*/
+select count(*) into @row_count from station;
+    
+select case
+    /* if stations have even row count 
+    select average of the two middle rows in station table ordered by lat_n
+    the station table is selected together with row_no variable */
+    when @row_count % 2 = 0 then round((select avg(a.lat_n) from
+           (select @row_n:=@row_n +1 as r, lat_n
+        from station
+        order by 2) a                      
+        where r in ((@row_count)/2,((@row_count/2)+1))),4)
+    
+    /* if stations has odd row count 
+    here it is easier, because there is only one middle row in the station table*/
+    else round((select a.lat_n from (
+        select @row_n:=@row_n +1 as r, lat_n
+        from station
+        order by 2
+    ) a where r = (@row_count+1)/2),4)
+    end;

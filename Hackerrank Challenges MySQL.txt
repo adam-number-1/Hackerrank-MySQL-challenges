@@ -1,0 +1,29 @@
+select id, name, total from
+-- the sorted joined table
+(select h.hacker_id as id, h.name as name, count(*) as total from hackers h
+    join challenges c on c.hacker_id = h.hacker_id
+    group by id, name
+    order by total desc, id) t 
+-- end of joined table
+-- i need to choose those hackers, which either had the total of challenges equal to maximum
+-- or those, who were the only with some number of total challenges
+where total = 
+-- select max query
+    (select max(a) from (select count(*) as a from challenges group by hacker_id) c)
+-- end of select max query
+
+    or total in (select tt from (
+-- query of total challenges, which are present just 1 time
+select total as tt, count(*) as cc from
+-- the sorted joined table
+(select h.hacker_id as id, h.name as name, count(*) as total from hackers h
+    join challenges c on c.hacker_id = h.hacker_id
+group by id, name
+order by total desc, id) t 
+-- end of joined table
+group by tt
+having cc = 1
+) x
+)
+-- sorting
+order by total desc, id;

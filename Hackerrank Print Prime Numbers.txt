@@ -1,0 +1,44 @@
+-- create a table from which the result query will go
+-- consists of columns n (numbers 1 to N) and if the number is prime varchar
+create table nums (n int, prime varchar(5));
+-- variables used later on
+set @b := 0, @a := 0;
+
+-- here I create procedure, which does all the calculations
+-- delimiter needs to be set, otherwise creating procedure doesn´t work
+delimiter //
+create procedure createnums(num int)
+begin
+    set @b := 1;
+    -- this loop takes numbers from 1 to N and inserts them into our table
+    while @b <= num do
+        insert into nums (n,prime) values (@b,Null);
+    -- below the procedure tests, if the number is prime
+        set @a := 2;
+    -- 1 is not a prime, so everything else is set as prime just for now
+        if @b != 1 then
+            update nums set prime = 'True' where n = @b;
+        else
+            update nums set prime = 'False' where n = @b;
+        end if;
+    -- in loop below I test the remainder of division for each number of the table
+    -- for each number, which is lower than the current number of the table
+        while @a < @b do
+        -- if the remainder is 0, then obviously the number is not prime
+            if @b % @a = 0 then
+                update nums set prime = 'False' where n = @b;
+            end if;
+            set @a := @a + 1;
+        end while;
+        set @b := @b + 1;
+    end while;
+end //
+
+
+
+delimiter ;
+
+call createnums(1000);
+
+-- the result is created as a group concat with & as a separator
+select group_concat(n separator '&') from nums where prime = 'True';
